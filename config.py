@@ -6,7 +6,7 @@ from libqtile.lazy import lazy
 
 mod = "mod4"
 HOME = expanduser("~")
-wallpaper_path = "/home/minitank/linux_computer/background_photo/sports-car-futuristic-mountain-sunset-scenery-digital-art-4k-wallpaper-uhdpaper.com-537@0@i.jpg"
+wallpaper_path = "sports-car-futuristic-mountain-sunset-scenery-digital-art-4k-wallpaper-uhdpaper.com-537@0@i.jpg"
 browser = "firefox-esr"
 terminal = "kitty"
 
