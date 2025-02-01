@@ -230,13 +230,6 @@ screens = [
                 widget.Systray(icon_size=22),
                 widget.TextBox('   '),
 
-                #widget.Image(
-                #    filename=f"{HOME}/.config/qtile/widget_icons/bluetooth.png",
-                #    mouse_callbacks = {'Button1': lazy.group['scratchpad'].dropdown_toggle('bluetooth')},
-                #    margin_y=1
-                #),
-                #widget.TextBox('   '),
-
                 widget.Image(
                     filename=f"{HOME}/.config/qtile/widget_icons/disk-utility.png",
                     margin_y=1
@@ -286,7 +279,6 @@ screens = [
                 ),
             ],
             22,
-            #background="000000b3",
         ),
     ),
 ]
@@ -308,8 +300,6 @@ cursor_warp = False
 # Float rules
 floating_layout = layout.Floating(
     border_width = 0,
-    #border_focus = COLOUR["green"],
-    #border_normal = COLOUR["grey"],
     float_rules=[
         *layout.Floating.default_float_rules,
         Match(wm_class='blueman-manager'),
