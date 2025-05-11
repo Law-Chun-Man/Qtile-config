@@ -4,16 +4,9 @@ from libqtile.config import Click, Drag, Group, Key, Match, Screen, ScratchPad, 
 from libqtile.lazy import lazy
 
 mod = "mod4"
-HOME = "/home/(your user name)"
-wallpaper_path = f"{HOME}/your wallpaper path"
+HOME = "your home directory"
 browser = "firefox-esr"
 terminal = "xfce4-terminal --disable-server"
-
-COLOUR = {
-    "grey": "777777",
-    "cyan": "00eeff",
-    "black": "000000",
-}
 
 @hook.subscribe.startup_once
 def autostart():
@@ -42,51 +35,48 @@ keys = [
     Key(["control", "mod1"], "delete", lazy.spawn("sudo poweroff"), desc="Poweroff"),
 
     # Launcher
-    Key([mod], "slash", lazy.spawn("xfce4-appfinder -c"), desc="Launch appfinder"),
+    Key([mod], "slash", lazy.spawncmd(command="bash -ic '%s'"), desc="Spawn a command with aliases in bashrc enabled."),
     Key([mod, "shift"], "XF86Touchpadoff", lazy.spawn(f"xfce4-appfinder"), desc="Launch appfinder"),
     Key([mod], "p", lazy.spawn(f"xfce4-appfinder"), desc="Launch appfinder"),
     Key(["control", "mod1"], "f", lazy.spawn(browser), desc="Launch Firefox"),
     Key(["control", "mod1"], "t", lazy.spawn(terminal), desc="Launch terminal"),
     Key(["control", "mod1"], "k", lazy.spawn("kdeconnect-app"), desc="Launch kdeconnect"),
+    Key(["control", "mod1"], "o", lazy.spawn("obs"), desc="Launch obs"),
+    Key(["control", "mod1"], "g", lazy.spawn("gnome-boxes"), desc="Launch virtual machine"),
     Key(["control", "mod1"], "h", lazy.spawn("thunar"), desc="Launch file explorer"),
     Key(["control", "mod1"], "y", lazy.spawn(f'{browser} --private-window "youtube.com"'), desc="Open youtube on private tab"),
+    Key(["control", "mod1"], "j", lazy.spawn(f"{HOME}/linux_computer/jupyter_file/jupyter.sh"), desc="Launch jupyter notebook"),
     Key(["control", "mod1"], "p", lazy.spawn(f"{HOME}/.local/share/JetBrains/Toolbox/apps/pycharm-community/bin/pycharm.sh"), desc="Launch pycharm"),
     Key(["control", "mod1"], "w", lazy.spawn(f"{HOME}/.local/share/JetBrains/Toolbox/apps/webstorm/bin/webstorm.sh"), desc="Launch webstorm"),
 
     # Switch between windows
     Key([mod], "j", lazy.layout.down(), desc="Move focus down"),
     Key([mod], "k", lazy.layout.up(), desc="Move focus up"),
-    Key([mod], "m", lazy.layout.swap_main(), desc="Move focus to main"),
     # Swap windows
-    Key([mod, "shift"], "j", lazy.layout.shuffle_down(), desc="Move window down"),
-    Key([mod, "shift"], "k", lazy.layout.shuffle_up(), desc="Move window up"),
+    Key([mod], "m", lazy.layout.swap_main(), desc="Move focus to main"),
     # Resize windows.
     Key([mod], "h", lazy.layout.shrink_main(), desc="Shrink main"),
     Key([mod], "l", lazy.layout.grow_main(), desc="Grow main"),
-    Key([mod, "control"], "j", lazy.layout.grow(), desc="Grow window down"),
-    Key([mod, "control"], "k", lazy.layout.shrink(), desc="Grow window up"),
     Key([mod], "n", lazy.layout.reset(), desc="Reset all window sizes"),
     # Toggle between different layouts as defined below
     Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
     Key([mod], "w", lazy.window.kill(), desc="Kill focused window"),
     Key([mod], "f", lazy.window.toggle_fullscreen(), desc="Toggle fullscreen on the focused window"),
     Key([mod], "t", lazy.window.toggle_floating(), desc="Toggle floating on the focused window"),
+    Key([mod], "i", lazy.next_screen(), desc='Move focus to next monitor'),
     Key([mod, "shift"], "r", lazy.reload_config(), desc="Reload the config"),
     Key([mod, "shift"], "q", lazy.shutdown(), desc="Shutdown Qtile"),
     Key([mod, "shift"], "w", lazy.spawn("dm-tool lock"), desc="Lock screen"),
-    #Key([mod], "Return", lazy.spawncmd(command="bash -ic '%s'"), desc="Spawn a command with aliases in bashrc enabled."),
 
     # Scratchpad
     Key([], "XF86Favorites", lazy.group['scratchpad'].dropdown_toggle('calc'), desc="Bring up calculator scratchpad"),
-    Key(["control", "mod1"], "c", lazy.group['scratchpad'].dropdown_toggle('calc'), desc="For keyboard without calculator key"),
+    Key(["control", "mod1"], "c", lazy.group['scratchpad'].dropdown_toggle('calc'), desc="Bring up calculator scratchpad"),
     Key([mod], "semicolon", lazy.group['scratchpad'].dropdown_toggle('file'), desc="Bring up file manager"),
     Key([mod], "Return", lazy.group['scratchpad'].dropdown_toggle('terminal'), desc="Bring up terminal"),
     Key(["control", "mod1"], "v", lazy.group['scratchpad'].dropdown_toggle('vpn'), desc="Bring up vpn"),
 ]
 
-group_names = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
-group_labels = ["➊", "➋", "➌", "➍", "➎", "➏", "➐", "➑", "➒", "➓"]
-groups = [Group(name=group_names[i], label=group_labels[i]) for i in range(10)]
+groups = [Group(i) for i in "1234567890"]
 
 for i in groups:
     keys.extend(
@@ -105,12 +95,10 @@ for i in groups:
                 lazy.window.togroup(i.name, switch_group=True),
                 desc=f"Switch to & move focused window to group {i.name}",
             ),
-            # mod + control + group number = switch to & move focused window to group
+            # mod + control + group number = move focused window to group
             Key(
-                [mod, "control"],
-                i.name,
-                lazy.window.togroup(i.name, switch_group=False),
-                desc=f"Move focused window to group {i.name}",
+                [mod, "control"], i.name, lazy.window.togroup(i.name),
+                desc="move focused window to group {}".format(i.name)
             ),
         ]
     )
@@ -118,132 +106,155 @@ for i in groups:
 # Add scratchpads
 groups += [
     ScratchPad("scratchpad", [
-        DropDown("file", "thunar", height=0.5, y=0.2, width=0.7, x=0.15, opacity=1),
-        DropDown("terminal", terminal, height=0.5, y=0.25, width=0.5, x=0.25, opacity=1),
-        DropDown("volume", "pavucontrol", height=0.5, y=0.2, width=0.4, x=0.3, opacity=1),
+        DropDown("calc", f"{terminal} -e 'python3 -i {HOME}/linux_computer/jupyter_file/import.py'", height=0.4, y=0, width=0.4, x=0.3, opacity=1),
+        DropDown("file", "thunar", height=0.5, y=0, width=0.7, x=0, opacity=1),
+        DropDown("terminal", terminal, height=0.4, y=0, width=0.4, x=0, opacity=1),
+        DropDown("vpn", f'{terminal} -e "bash {HOME}/linux_computer/linux_setup/vpn/connect.sh"', height=0.4, y=0, width=0.4, x=0, opacity=1),
     ]),
 ]
 
 layouts = [
     layout.MonadTall(
-        border_focus=COLOUR["cyan"],
-        border_normal=COLOUR["black"],
-        change_ratio=0.03,
+        border_normal="#000000",
+        border_focus="#00ffff",
+        new_client_position="top",
         single_border_width=0,
-        new_client_position='top',
-        max_ratio=0.85,
-        min_ratio=0.15
+        max_ratio=1,
+        min_ratio=0,
     ),
     layout.Max(),
 ]
 
 widget_defaults = dict(
-    font="URW Gothic Bold",
-    fontsize=20,
-    padding=0,
+    font="JetBrainsMono",
+    fontsize=22,
+    padding=3,
 )
+extension_defaults = widget_defaults.copy()
 
 screens = [
     Screen(
-        wallpaper = wallpaper_path,
-        wallpaper_mode='fill',
         top=bar.Bar(
             [
-                # Left
-                # Mode switcher
-                widget.Image(
-                    filename=f"{HOME}/.config/qtile/widget_icons/weather-storm.svg",
-                    mouse_callbacks = {'Button1': lazy.spawn(f'{HOME}/.config/qtile/dunst/mode_switcher.sh')},
-                    margin_x=3,
-                    margin_y=1
-                ),
-                widget.TextBox(fmt="  "),
-
-
-                # Layout icon
-                widget.CurrentLayoutIcon(margin_x=3, margin_y=1),
-                widget.TextBox(fmt="  "),
-
-
-                # Show workspace
                 widget.GroupBox(
-                    fontsize=22,
-                    highlight_method='text',
+                    margin_x=5,
+                    highlight_method='line',
+                    block_highlight_text_color='ffffff',
+                    this_current_screen_border='00ffff',
+                    highlight_color=['004444', '004444'],
+                    active='ffffff',
+                    inactive='777777',
+                    rounded=False,
+                    disable_drag=True,
                     use_mouse_wheel=False,
-                    inactive=COLOUR["grey"],
-                    margin_x=2,
-                    margin_y=2,
-                    this_current_screen_border=COLOUR["cyan"]
                 ),
-                widget.TextBox(fmt="  "),
 
+                widget.Sep(size_percent=0, linewidth=10),
+                widget.CurrentLayoutIcon(scale=0.9),
+
+                # Prompt
+                widget.Sep(size_percent=0, linewidth=10),
+                widget.Prompt(
+                    font="JetBrainsMono",
+                    prompt='Run: ',
+                    cursor_color='ffffff',
+                    bell_style=None,
+                ),
 
                 widget.Spacer(),
 
+                # Systray
+                widget.Systray(icon_size=24),
 
-                # Right
-                widget.Systray(icon_size=22),
-                widget.TextBox('   '),
-
+                # Net
+                widget.Sep(size_percent=0, linewidth=10),
+                widget.GenPollCommand(
+                    cmd=f"{HOME}/.config/qtile/bash_script/internet.sh",
+                    font="Font Awesome",
+                    foreground='00ffff',
+                    fmt="{} ",
+                    fontsize=20,
+                    update_interval=2,
+                ),
+                widget.Net(
+                    format='{total:.0f}{total_suffix}',
+                    update_interval=2,
+                ),
 
                 # Memory
-                widget.Image(
-                    filename=f"{HOME}/.config/qtile/widget_icons/disk-utility.png",
-                    margin_y=1
+                widget.Sep(size_percent=0, linewidth=10),
+                widget.TextBox(text=" ", font="Font Awesome", fontsize=20, foreground='00ffff'),
+                widget.Memory(format='{MemPercent}%', update_interval=2),
+
+                # CPU
+                widget.Sep(size_percent=0, linewidth=10),
+                widget.TextBox(text=" ", font="Font Awesome", fontsize=20, foreground='00ffff'),
+                widget.CPU(format='{load_percent}%', update_interval=2),
+
+                # Mode
+                widget.Sep(size_percent=0, linewidth=10),
+                widget.GenPollCommand(
+                    name='mode',
+                    cmd=f"{HOME}/.config/qtile/bash_script/mode.sh",
+                    font="Font Awesome",
+                    foreground='00ffff',
+                    fmt="{}",
+                    fontsize=20,
+                    update_interval=60,
+                    mouse_callbacks = {'Button1': lazy.spawn(f'{HOME}/.config/qtile/dunst/mode_switcher.sh')},
                 ),
-                widget.TextBox(' '),
-                widget.GenPollCommand(cmd=f"{HOME}/.config/qtile/bash_script/mem.sh", update_interval=2),
-                widget.TextBox('   '),
 
-
-                # Network
-                widget.Image(
-                    filename=f"{HOME}/.config/qtile/widget_icons/network-wireless.png",
-                    margin_y=1
+                # Mic
+                widget.Sep(size_percent=0, linewidth=10),
+                widget.GenPollCommand(
+                    name='mic',
+                    cmd=f"{HOME}/.config/qtile/bash_script/mic.sh",
+                    font="Font Awesome",
+                    foreground='00ffff',
+                    fmt="{}",
+                    fontsize=20,
+                    update_interval=60,
+                    mouse_callbacks = {'Button1': lazy.spawn(f'{HOME}/.config/qtile/dunst/mic_mute.sh')},
                 ),
-                widget.TextBox(' '),
-                widget.GenPollCommand(cmd=f"{HOME}/.config/qtile/bash_script/internet.sh", update_interval=2),
-                widget.TextBox('   '),
-
-
-                # CPU Temperature
-                widget.Image(
-                    filename=f"{HOME}/.config/qtile/widget_icons/utilities-system-monitor.svg",
-                    margin_y=1
-                ),
-                widget.TextBox(' '),
-                widget.GenPollCommand(cmd=f"{HOME}/.config/qtile/bash_script/cpu_temp.sh", update_interval=2),
-                widget.TextBox('   '),
-
 
                 # Volume
-                widget.Image(
-                    filename=f"{HOME}/.config/qtile/widget_icons/audio-volume-high.svg",
-                    mouse_callbacks = {'Button1': lazy.group['scratchpad'].dropdown_toggle('volume')},
-                    margin_y=1
+                widget.Sep(size_percent=0, linewidth=10),
+                widget.GenPollCommand(
+                    name='mute',
+                    cmd=f'{HOME}/.config/qtile/bash_script/mute.sh',
+                    font="Font Awesome",
+                    foreground='00ffff',
+                    fmt="{} ",
+                    fontsize=20,
+                    update_interval=60,
+                    mouse_callbacks = {'Button1': lazy.spawn('pavucontrol')},
                 ),
-                widget.Volume(
-                        fmt=' {}   ',
-                        mouse_callbacks={'Button1': lazy.group['scratchpad'].dropdown_toggle('volume'), 'Button2': None, 'Button3': None, 'Button4': None, 'Button5': None}
+                widget.GenPollCommand(
+                    name='volume',
+                    cmd=f'{HOME}/.config/qtile/bash_script/volume.sh',
+                    font="JetBrainsMono",
+                    fmt="{}",
+                    update_interval=60,
+                    mouse_callbacks = {'Button1': lazy.spawn('pavucontrol')},
                 ),
-
 
                 # Battery
-                widget.BatteryIcon(
-                    theme_path=f"{HOME}/.config/qtile/battery_icons",
-                    scale=1.1
+                widget.Sep(size_percent=0, linewidth=10),
+                widget.GenPollCommand(
+                    cmd=f"{HOME}/.config/qtile/bash_script/battery.sh",
+                    font="Font Awesome",
+                    foreground='00ffff',
+                    fmt="{} ",
+                    fontsize=20,
+                    update_interval=60,
                 ),
-                widget.GenPollCommand(cmd=f"{HOME}/.config/qtile/bash_script/bat.sh", update_interval=60),
-                widget.TextBox('   '),
+                widget.Battery(format='{percent:2.0%}', update_interval=60),
 
-
-                # Date
-                widget.GenPollCommand(cmd=f"{HOME}/.config/qtile/bash_script/date.sh", update_interval=86400),
-                widget.TextBox('  '),
-                widget.GenPollCommand(cmd=f"{HOME}/.config/qtile/bash_script/time.sh", update_interval=1),
-                widget.TextBox(' '),
+                # Date and time
+                widget.Sep(size_percent=0, linewidth=10),
+                widget.Clock(format="%a %d %b %H:%M:%S"),
             ],
-            24,
+            26,
         ),
     ),
 ]
@@ -258,19 +269,22 @@ mouse = [
 dgroups_key_binder = None
 dgroups_app_rules = []
 follow_mouse_focus = False
-bring_front_click = True
+bring_front_click = False
 floats_kept_above = True
 cursor_warp = False
 
-# Float rules
 floating_layout = layout.Floating(
     border_width = 2,
-    border_focus = COLOUR["cyan"],
-    border_normal = COLOUR["grey"],
+    border_focus = "00ffff",
     float_rules=[
         *layout.Floating.default_float_rules,
-        Match(wm_class='blueman-manager'),
         Match(wm_class='xfce4-appfinder'),
+        Match(wm_class="confirmreset"),  # gitk
+        Match(wm_class="makebranch"),  # gitk
+        Match(wm_class="maketag"),  # gitk
+        Match(wm_class="ssh-askpass"),  # ssh-askpass
+        Match(title="branchdialog"),  # gitk
+        Match(title="pinentry"),  # GPG key password entry
     ]
 )
 
@@ -278,5 +292,6 @@ auto_fullscreen = True
 focus_on_window_activation = "smart"
 reconfigure_screens = True
 auto_minimize = True
-wmname = "LG3D"
+
+wmname = "Qtile"
 
