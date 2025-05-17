@@ -4,7 +4,7 @@ from libqtile.config import Click, Drag, Group, Key, Match, Screen, ScratchPad, 
 from libqtile.lazy import lazy
 
 mod = "mod4"
-HOME = "your home directory"
+HOME = "/home/minitank"
 browser = "firefox-esr"
 terminal = "xfce4-terminal --disable-server"
 
@@ -15,7 +15,7 @@ def autostart():
 
 keys = [
     # Monitor
-    Key([], "XF86Display", lazy.spawn(f'{terminal} -e "{HOME}/.config/qtile/bash_script/monitor.sh"'), desc="Change monitor"),
+    Key([], "XF86Display", lazy.spawn(f'{HOME}/.config/qtile/bash_script/monitor.sh'), desc="Change monitor"),
     # Screenshot
     Key([], "Print", lazy.spawn("bash -c 'xfce4-screenshooter -crs Pictures/screenshots/screenshot_$(date +\%Y\%m\%d_\%H\%M\%S).png'"), desc="screenshot area"),
     Key([mod], "Print", lazy.spawn("bash -c 'xfce4-screenshooter -cfs Pictures/screenshots/screenshot_$(date +\%Y\%m\%d_\%H\%M\%S).png'"), desc="screenshot area"),
@@ -35,9 +35,10 @@ keys = [
     Key(["control", "mod1"], "delete", lazy.spawn("sudo poweroff"), desc="Poweroff"),
 
     # Launcher
+    Key([mod], "s", lazy.spawn(f"{HOME}/.config/qtile/bash_script/spanish.sh"), desc="Practice Spanish"),
     Key([mod], "slash", lazy.spawncmd(command="bash -ic '%s'"), desc="Spawn a command with aliases in bashrc enabled."),
     Key([mod, "shift"], "XF86Touchpadoff", lazy.spawn(f"xfce4-appfinder"), desc="Launch appfinder"),
-    Key([mod], "p", lazy.spawn(f"xfce4-appfinder"), desc="Launch appfinder"),
+    Key([mod], "p", lazy.spawn(f"dmenu_run"), desc="Launch appfinder"),
     Key(["control", "mod1"], "f", lazy.spawn(browser), desc="Launch Firefox"),
     Key(["control", "mod1"], "t", lazy.spawn(terminal), desc="Launch terminal"),
     Key(["control", "mod1"], "k", lazy.spawn("kdeconnect-app"), desc="Launch kdeconnect"),
@@ -117,6 +118,7 @@ layouts = [
     layout.MonadTall(
         border_normal="#000000",
         border_focus="#00ffff",
+        border_width=3,
         new_client_position="top",
         single_border_width=0,
         max_ratio=1,
@@ -165,6 +167,24 @@ screens = [
 
                 # Systray
                 widget.Systray(icon_size=24),
+
+                # Weather
+                widget.Sep(size_percent=0, linewidth=10),
+                widget.TextBox(text=" ", font="Font Awesome", fontsize=20, foreground='00ffff'),
+                widget.GenPollCommand(
+                    cmd=f"{HOME}/.config/qtile/bash_script/temperature.sh",
+                    font="JetBrainsMono",
+                    fmt="{}°C",
+                    update_interval=3600,
+                ),
+                widget.Sep(size_percent=0, linewidth=10),
+                widget.TextBox(text=" ", font="Font Awesome", fontsize=20, foreground='00ffff'),
+                widget.GenPollCommand(
+                    cmd=f"{HOME}/.config/qtile/bash_script/humidity.sh",
+                    font="JetBrainsMono",
+                    fmt="{}%",
+                    update_interval=3600,
+                ),
 
                 # Net
                 widget.Sep(size_percent=0, linewidth=10),
